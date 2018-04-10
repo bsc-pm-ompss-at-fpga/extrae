@@ -35,6 +35,7 @@ void Extrae_shutdown_Wrapper (void);
 void Extrae_restart_Wrapper (void);
 
 void Extrae_N_Event_Wrapper (unsigned *count, extrae_type_t *tipus, extrae_value_t *valors);
+void Extrae_N_DeviceEvent_Wrapper (int device_id, unsigned *count, extrae_type_t *tipus, extrae_value_t *valors, extrae_time_t *times);
 void Extrae_N_Eventsandcounters_Wrapper (unsigned *count, extrae_type_t *tipus, extrae_value_t *valors);
 void Extrae_counters_Wrapper (void);
 void Extrae_counters_at_Time_Wrapper (UINT64 time);
@@ -61,13 +62,14 @@ void Extrae_register_stacked_type_Wrapper (extrae_type_t type);
 void Extrae_register_codelocation_type_Wrapper (extrae_type_t type_function,
 	extrae_type_t type_file_line, const char *description_function,
 	const char *description_file_line);
-void Extrae_register_function_address_Wrapper (void *ptr, const char *funcname, 
+void Extrae_register_function_address_Wrapper (void *ptr, const char *funcname,
 	const char *modname, unsigned line);
 void Extrae_define_event_type_Wrapper (extrae_type_t type, char *description,
 	unsigned nvalues, extrae_value_t *values, char **description_values);
 void Extrae_get_version_Wrapper (unsigned *major, unsigned *minor,
   unsigned *revision);
 
+void Extrae_register_device_Wrapper (const char *description, extrae_time_t (*get_device_time_fn)(void *), void *get_device_time_arg);
 void Extrae_change_number_of_threads_Wrapper (unsigned nthreads);
 
 void Extrae_flush_manual_Wrapper ();

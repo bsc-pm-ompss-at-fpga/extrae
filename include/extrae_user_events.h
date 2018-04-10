@@ -73,6 +73,12 @@ void MPItrace_nevent (unsigned count, extrae_type_t *types, extrae_value_t *valu
 void OMPtrace_nevent (unsigned count, extrae_type_t *types, extrae_value_t *values);
 void SEQtrace_nevent (unsigned count, extrae_type_t *types, extrae_value_t *values);
 
+void Extrae_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times);
+void OMPItrace_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times);
+void MPItrace_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times);
+void OMPtrace_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times);
+void SEQItrace_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times);
+
 void Extrae_shutdown (void);
 void MPItrace_shutdown (void);
 void OMPItrace_shutdown (void);

@@ -1,3 +1,4 @@
+
 /*****************************************************************************\
  *                        ANALYSIS PERFORMANCE TOOLS                         *
  *                                   Extrae                                  *
@@ -21,44 +22,58 @@
  *   Barcelona Supercomputing Center - Centro Nacional de Supercomputacion   *
 \*****************************************************************************/
 
-#ifndef __TRACE_BUFFERS_H__
-#define __TRACE_BUFFERS_H__
+#include "common.h"
 
-#include "buffers.h"
-#include "signals.h"
-
-/* Don't like these externs -> Declare fetch functions in wrapper.c and include prototypes in wrapper.h ? */
-extern Buffer_t **TracingBuffer;
-extern Buffer_t **SamplingBuffer;
-
-#if defined(__cplusplus)
-extern "C" {
+#ifdef HAVE_STDLIB_H
+# include <stdlib.h>
 #endif
-int Extrae_Flush_Wrapper (Buffer_t *buffer);
-#if defined(__cplusplus)
-}
+#ifdef HAVE_STRING_H
+# include <string.h>
 #endif
 
-#define TRACING_BUFFER(tid) TracingBuffer[tid]
-#define SAMPLING_BUFFER(tid) SamplingBuffer[tid]
+#include "utils.h"
+#include "deviceinfo.h"
 
-#define BUFFER_INSERT(tid, buffer, event)                   \
-{                                                           \
-	Signals_Inhibit();                                      \
-	Buffer_InsertSingle (buffer, &event);                   \
-	Signals_Desinhibit();                                   \
-	Signals_ExecuteDeferred();                              \
-}
-	
-#define BUFFER_INSERT_N(tid, buffer, events_list, num_events)            \
-{                                                                        \
-	if (num_events > 0)                                                  \
-	{                                                                    \
-		Signals_Inhibit();                                               \
-		Buffer_InsertMultiple(buffer, events_list, num_events);          \
-		Signals_Desinhibit();                                            \
-		Signals_ExecuteDeferred();                                       \
-	}                                                                    \
+static Extrae_device_info_t *device_info = NULL;
+static unsigned device_info_ndevices = 0;
+
+void Extrae_allocate_device_CleanUp (void)
+{
+	unsigned u;
+
+	for (u = 0; u < device_info_ndevices; u++)
+	{
+		pthread_mutex_destroy(&device_info[u].lock);
+	}
+
+	xfree (device_info);
+	device_info = NULL;
 }
 
-#endif /* __TRACE_BUFFERS_H__ */
+void Extrae_allocate_device_info (unsigned ndevices)
+{
+	unsigned u, total_devices;
+
+	total_devices = device_info_ndevices + ndevices;
+	device_info = (Extrae_device_info_t*) realloc (device_info, total_devices*sizeof (Extrae_device_info_t));
+
+	for (u = device_info_ndevices; u < total_devices; u++)
+	{
+		device_info[u].threadid = -1;
+		device_info[u].auxdata = NULL;
+		device_info[u].latency = 0;
+		pthread_mutex_init (&device_info[u].lock, NULL);
+	}
+
+	device_info_ndevices = total_devices;
+}
+
+unsigned Extrae_get_device_number (void)
+{
+	return device_info_ndevices;
+}
+
+Extrae_device_info_t * Extrae_get_device_info (unsigned deviceid)
+{
+	return deviceid < device_info_ndevices ? &device_info[deviceid] : NULL;
+}

@@ -88,7 +88,7 @@
 #if defined(HAVE_SCHED_GETCPU)
 	/* Although man indicates that this should be in sched.h, it seems to be not there */
 	extern int sched_getcpu(void);
-#endif 
+#endif
 
 #include "wrapper.h"
 #if defined(MPI_SUPPORT)
@@ -142,6 +142,7 @@
 #endif
 #include "debug.h"
 #include "threadinfo.h"
+#include "deviceinfo.h"
 #if defined(PTHREAD_SUPPORT)
 # include "pthread_probe.h"
 #endif
@@ -329,7 +330,7 @@ PENDING_TRACE_CPU_EVENT(int thread_id, iotimer_t current_time)
 /* HSG
 
  MN GPFS optimal files per directories is 512.
- 
+
  Why blocking in 128 sets? Because each task may produce 2 files (mpit and
  sample), and also the final directory and the temporal directory may be the
  same. So on the worst case, there are 512 files in the directory at a time.
@@ -461,7 +462,7 @@ static void Extrae_BG_gettopology (int enter, UINT64 timestamp)
 #if defined(IS_BGP_MACHINE)
 	_BGP_Personality_t personality;
 	unsigned personality_size = sizeof (personality);
-	
+
 	Kernel_GetPersonality (&personality, personality_size);
 	TRACE_MISCEVENT (timestamp, USER_EV, BG_PERSONALITY_TORUS_X, enter?BGP_Personality_xCoord(&personality):0);
 	TRACE_MISCEVENT (timestamp, USER_EV, BG_PERSONALITY_TORUS_Y, enter?BGP_Personality_yCoord(&personality):0);
@@ -542,7 +543,7 @@ void Extrae_set_ApplicationIsSHMEM (int b)
 
 
 /******************************************************************************
- *** Store the first mechanism to initialize the tracing 
+ *** Store the first mechanism to initialize the tracing
  ******************************************************************************/
 static extrae_init_type_t Extrae_Init_Type = EXTRAE_NOT_INITIALIZED;
 
@@ -575,7 +576,7 @@ void Backend_createExtraeDirectory (int taskid, int Temporal)
 		ret = __Extrae_Utils_mkdir_recursive (dirname);
 		attempts--;
 	}
-	
+
 	if (!ret && attempts == 0 && Temporal)
 		fprintf (stderr, PACKAGE_NAME ": Error! Task %d was unable to create temporal directory %s\n", taskid, dirname);
 	else if (!ret && attempts == 0 && !Temporal)
@@ -663,7 +664,7 @@ static int read_environment_variables (int me)
 	}
 
 	/* Minimum CPU Burst duration? */
-	if ((str = getenv("EXTRAE_BURST_THRESHOLD")) != NULL) 
+	if ((str = getenv("EXTRAE_BURST_THRESHOLD")) != NULL)
 	{
 		TMODE_setBurstsThreshold (__Extrae_Utils_getTimeFromStr (str, "EXTRAE_BURST_THRESHOLD", me));
 	}
@@ -765,7 +766,7 @@ static int read_environment_variables (int me)
 			fprintf (stderr, PACKAGE_NAME": EXTRAE_FILE_SIZE set to %d Mbytes.\n", file_size);
 	}
 
-	/* 
+	/*
 	 * EXTRAE_MINIMUM_TIME : Set the minimum tracing time...
 	 */
 	MinimumTracingTime = __Extrae_Utils_getTimeFromStr (getenv("EXTRAE_MINIMUM_TIME"), "EXTRAE_MINIMUM_TIME", me);
@@ -778,7 +779,7 @@ static int read_environment_variables (int me)
 			fprintf (stdout, PACKAGE_NAME": Minimum tracing time will be %llu nanoseconds\n", MinimumTracingTime);
 	}
 
-	/* 
+	/*
 	 * EXTRAE_CONTROL_TIME : Set the control tracing time...
 	 */
 	WantedCheckControlPeriod = __Extrae_Utils_getTimeFromStr (getenv("EXTRAE_CONTROL_TIME"), "EXTRAE_CONTROL_TIME", me);
@@ -871,7 +872,7 @@ static int read_environment_variables (int me)
 	else
 #endif
 		tracejant_network_hwc = FALSE;
-	
+
 	/* Add UF routines to instrument under GCC -finstrument-function callback
 	   routines */
 	str = getenv ("EXTRAE_FUNCTIONS");
@@ -999,7 +1000,7 @@ static int read_environment_variables (int me)
 						fprintf (stderr, "Extrae: Warning! Value '%s' <sampling type=\"..\" /> is unrecognized. Using default.\n", str2);
 				}
 			}
-			else	
+			else
 				setTimeSampling (sampling_period, sampling_variability, SAMPLING_TIMING_DEFAULT);
 
 			if (me == 0)
@@ -1019,7 +1020,7 @@ static int read_environment_variables (int me)
 }
 
 /*
- * Inicializa el valor de las variables globales Trace_MPI_Caller, 
+ * Inicializa el valor de las variables globales Trace_MPI_Caller,
  * MPI_Caller_Deepness y MPI_Caller_Count en funcion de los parametros
  * seteados en la variable de entorno EXTRAE_MPI_CALLER
  * El formato de esta variable es una cadena separada por comas, donde
@@ -1038,8 +1039,8 @@ void Parse_Callers (int me, char * mpi_callers, int type)
    while ((caller = strtok(callers, (const char *)",")) != NULL) {
       callers = NULL;
       if (sscanf(caller, "%d-%d", &from, &to) != 2){
-         /* 
-          * No es un rango => Intentamos convertir el string a un numero.  
+         /*
+          * No es un rango => Intentamos convertir el string a un numero.
           */
          from = to = strtol(caller, &error, 10);
          if ((!strcmp(caller,"\0")  || strcmp(error,"\0")) ||
@@ -1090,10 +1091,10 @@ void Parse_Callers (int me, char * mpi_callers, int type)
          /* Marcamos que el mpi caller a profundidad i lo queremos tracear */
          Trace_Caller[type][i] = 1;
          Caller_Count[type]++;
-      }                                                                           
-   }                                                                              
+      }
+   }
 	if (Caller_Count[type] > 0 && me == 0)
-	{	
+	{
 		const char *s;
 		const char *s_mpi = "MPI";
 		const char *s_sampling = "Sampling";
@@ -1272,9 +1273,9 @@ int remove_temporal_files(void)
 }
 
 /**
- * Allocates a new tracing & sampling buffer for a given thread. 
+ * Allocates a new tracing & sampling buffer for a given thread.
  * \param thread_id The thread identifier.
- * \return 1 if success, 0 otherwise. 
+ * \return 1 if success, 0 otherwise.
  */
 static int Allocate_buffer_and_file (int thread_id, int forked)
 {
@@ -1400,7 +1401,7 @@ static int Reallocate_buffers_and_files (int new_num_threads)
 /******************************************************************************
  **      Function name : Extrae_Allocate_Task_Bitmap
  **      Author : HSG
- **      Description : Creates a bitmap mask just to know which ranks must 
+ **      Description : Creates a bitmap mask just to know which ranks must
  **        collect information or not.
  *****************************************************************************/
 int Extrae_Allocate_Task_Bitmap (int size)
@@ -1420,7 +1421,7 @@ int Extrae_Allocate_Task_Bitmap (int size)
 	return 0;
 }
 
-#if defined(OMP_SUPPORT) 
+#if defined(OMP_SUPPORT)
 static int getnumProcessors (void)
 {
 	int numProcessors;
@@ -1444,7 +1445,7 @@ static int getnumProcessors (void)
 
 /*
   This 'pthread_key' will store the thread identifier of every pthread
-  created and instrumented 
+  created and instrumented
 */
 
 static pthread_t *pThreads = NULL;
@@ -1554,7 +1555,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 	unsigned u;
 	int runningInDynInst = FALSE;
 	char trace_sym[TMP_DIR];
-#if defined(OMP_SUPPORT) 
+#if defined(OMP_SUPPORT)
 	char *omp_value;
 	char *new_num_omp_threads_clause;
 	int numProcessors;
@@ -1750,7 +1751,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 	{
 		Backend_setInInstrumentation (u, FALSE);
 		Backend_setInSampling (u, FALSE);
-		
+
 		FileName_PTT(trace_sym, Get_TemporalDir(Extrae_get_initial_TASKID()),
 		  appl_name, hostname, getpid(), Extrae_get_initial_TASKID(), u,
 		  EXT_SYM);
@@ -1811,17 +1812,17 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 				free (hwc_defs);
 			}
 		}
-	
+
 		/* Write hardware counters set definitions (i.e. those given at config time) into the .mpit files*/
 		for (set=0; set<HWC_Get_Num_Sets(); set++)
 		{
 			int *HWCid;
-	
+
 			HWC_Get_Set_Counters_Ids (set, &HWCid); /* HWCid is allocated up to MAX_HWC and sets NO_COUNTER where appropriate */
 			TRACE_EVENT_AND_GIVEN_COUNTERS (ApplBegin_Time, HWC_DEF_EV, set, MAX_HWC, HWCid);
 			xfree (HWCid);
 		}
-	
+
 		/* Start reading counters */
 		HWC_Start_Counters (get_maximum_NumOfThreads(), ApplBegin_Time, forked);
 #endif
@@ -1845,7 +1846,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 		{
 			Online_Disable();
 			fprintf(stderr, "Backend_preInitialize:: ERROR: Online_Init() failed.\n");
-		}	
+		}
 	}
 #endif
 
@@ -1885,7 +1886,7 @@ int Backend_ChangeNumberOfThreads (unsigned numberofthreads)
 		if (new_num_threads > get_maximum_NumOfThreads())
 		{
 			unsigned u;
-	
+
 			/* Reallocate InInstrumentation structures */
 			Backend_ChangeNumberOfThreads_InInstrumentation (new_num_threads);
 			/* We leave... so, we're no longer in instrumentatin from this point */
@@ -1894,34 +1895,34 @@ int Backend_ChangeNumberOfThreads (unsigned numberofthreads)
 				Backend_setInInstrumentation (u, FALSE);
 				Backend_setInSampling (u, FALSE);
 			}
-	
+
 			/* Reallocate clock structures */
 			Clock_AllocateThreads (new_num_threads);
-	
+
 			/* Reallocate the buffers and trace files */
 			Reallocate_buffers_and_files (new_num_threads);
-	
+
 			/* Reallocate trace mode */
 			Trace_Mode_reInitialize (get_maximum_NumOfThreads(), new_num_threads);
-	
+
 #if USE_HARDWARE_COUNTERS
 			/* Reallocate and start reading counters for these threads */
 			HWC_Restart_Counters (get_maximum_NumOfThreads(), new_num_threads);
 #endif
-	
+
 			/* Allocate thread info structure */
 			Extrae_reallocate_thread_info (get_maximum_NumOfThreads(), new_num_threads);
-	
+
 #if defined(CUDA_SUPPORT)
 			/* Allocate thread info for CUDA execs */
 			Extrae_reallocate_CUDA_info (new_num_threads);
 #endif
-	
+
 #if defined(PTHREAD_SUPPORT)
 			/* Allocate thread info for pthread execs */
 			Extrae_reallocate_pthread_info (new_num_threads);
 #endif
-	
+
 			maximum_NumOfThreads = current_NumOfThreads = new_num_threads;
 		}
 		else
@@ -2012,7 +2013,7 @@ int Backend_postInitialize (int rank, int world_size, unsigned init_event,
 	StartingTimes[0] = ApplBegin_Time;
 	SynchronizationTimes[0] = EndTime;
 #endif
-	
+
 	for (i=0; i<world_size; i++)
 	{
 		char *node = (node_list == NULL) ? "" : node_list[i];
@@ -2157,7 +2158,7 @@ static void Backend_Finalize_close_mpits (pid_t pid, int thread, int append)
 		  TASKID, thread, EXT_MPIT);
 	}
 	if (!append)
-		r = __Extrae_Utils_rename_or_copy (tmp_name, trace); 
+		r = __Extrae_Utils_rename_or_copy (tmp_name, trace);
 	else
 		r = __Extrae_Utils_append_from_to_file (tmp_name, trace);
 
@@ -2172,7 +2173,7 @@ static void Backend_Finalize_close_mpits (pid_t pid, int thread, int append)
 #if defined(SAMPLING_SUPPORT)
 	FileName_PTT(tmp_name, Get_TemporalDir(initialTASKID), appl_name, hostname,
 	  pid, initialTASKID, thread, EXT_TMP_SAMPLE);
-	if (Buffer_GetFillCount(SAMPLING_BUFFER(thread)) > 0) 
+	if (Buffer_GetFillCount(SAMPLING_BUFFER(thread)) > 0)
 	{
 		Buffer_Flush(SAMPLING_BUFFER(thread));
 		Buffer_Close(SAMPLING_BUFFER(thread));
@@ -2212,7 +2213,7 @@ static void Backend_Finalize_close_mpits (pid_t pid, int thread, int append)
 }
 
 /**
- * Force the given thread to flush 
+ * Force the given thread to flush
  */
 void Flush_Thread(int thread_id)
 {
@@ -2231,7 +2232,7 @@ void Extrae_Flush_Wrapper_setCounters (int c)
  * Flushes the buffer to disk and marks this I/O in trace.
  * \param buffer The buffer to be flushed.
  * \return 1 on success, 0 otherwise.
- */ 
+ */
 int Extrae_Flush_Wrapper (Buffer_t *buffer)
 {
 	event_t FlushEv_Begin, FlushEv_End;
@@ -2322,7 +2323,7 @@ void Backend_Finalize (void)
 		Extrae_setSamplingEnabled (FALSE);
 		unsetTimeSampling ();
 
-		if (THREADID == 0) 
+		if (THREADID == 0)
 		{
 			Extrae_getrusage_Wrapper ();
 			Extrae_memusage_Wrapper ();
@@ -2333,7 +2334,7 @@ void Backend_Finalize (void)
 #endif
 
 		/* Write files back to disk , 1st part will include flushing events*/
-		for (thread = 0; thread < get_maximum_NumOfThreads(); thread++) 
+		for (thread = 0; thread < get_maximum_NumOfThreads(); thread++)
 		{
 			/* Prevent writing performance counters from another thread */
 			if (thread != THREADID)
@@ -2361,7 +2362,7 @@ void Backend_Finalize (void)
 
 			pthread_mutex_unlock(&pthreadFreeBuffer_mtx);
 		}
-	
+
 		/* Free allocated memory */
 		{
 			if (TASKID == 0)
@@ -2395,6 +2396,7 @@ void Backend_Finalize (void)
 #endif
 			xfree (TracingBitmap);
 			Extrae_allocate_thread_CleanUp();
+			Extrae_allocate_device_CleanUp();
 			TimeSync_CleanUp();
 			Trace_Mode_CleanUp();
 			Clock_CleanUp();
@@ -2457,7 +2459,7 @@ void Backend_Finalize (void)
 		if (TRACING_BUFFER(THREADID) != NULL)
 		{
 			Buffer_Flush(TRACING_BUFFER(THREADID));
-			for (thread = 0; thread < get_maximum_NumOfThreads(); thread++) 
+			for (thread = 0; thread < get_maximum_NumOfThreads(); thread++)
 				Backend_Finalize_close_mpits (pid, thread, TRUE);
 		}
 		pthread_mutex_unlock(&pthreadFreeBuffer_mtx);
@@ -2477,11 +2479,11 @@ int Backend_inInstrumentation (unsigned thread)
 		return FALSE;
 }
 
-void Backend_setInSampling (unsigned thread, int insampling)      
-{                                                                               
-	  if (Extrae_inSampling != NULL)                                         
-			    Extrae_inSampling[thread] = insampling;                       
-}                                                                               
+void Backend_setInSampling (unsigned thread, int insampling)
+{
+	  if (Extrae_inSampling != NULL)
+			    Extrae_inSampling[thread] = insampling;
+}
 
 void Backend_setInInstrumentation (unsigned thread, int ininstrumentation)
 {
@@ -2772,7 +2774,7 @@ static void Extrae_getExecutableInfo (void)
 			char module[LINE_SIZE];
 			char perms[5];
 			module[0] = 0;
-		
+
 			match = sscanf (line, "%lx-%lx %s %lx %*s %*u %[^\n]", &start, &end, perms,
 			  &offset, module);
 
@@ -2802,7 +2804,7 @@ static void Extrae_getExecutableInfo (void)
 
 /***
  * Backend_updateTaskID
- * what shall be done when changing the task ID, for instancen when executing 
+ * what shall be done when changing the task ID, for instancen when executing
  * first Extrae_init and then MPI_Init
  */
 void Backend_updateTaskID (void)
@@ -2827,7 +2829,7 @@ void Backend_updateTaskID (void)
 		  EXT_SYM);
 		if (__Extrae_Utils_file_exists (file1))
 		{
-			FileName_PTT(file2, Get_TemporalDir(TASKID), appl_name, hostname, 
+			FileName_PTT(file2, Get_TemporalDir(TASKID), appl_name, hostname,
 			  getpid(), TASKID, thread, EXT_SYM);
 
 			/* Remove file if it already exists, and then copy the "new" version */
@@ -2835,7 +2837,7 @@ void Backend_updateTaskID (void)
 				if (!unlink (file2) == 0)
 					fprintf (stderr, PACKAGE_NAME": Cannot unlink symbolic file: %s, symbols will be corrupted!\n", file2);
 
-			r = __Extrae_Utils_rename_or_copy (file1, file2); 
+			r = __Extrae_Utils_rename_or_copy (file1, file2);
 			if (r < 0)
 				fprintf (stderr, PACKAGE_NAME": Error copying symbolicfile %s into %s!\n", file1, file2);
 		}
@@ -2863,4 +2865,3 @@ void Extrae_core_set_maximum_threads(int maximum_threads)
   maximum_NumOfThreads = maximum_threads;
 }
 #endif
-

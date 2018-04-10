@@ -21,44 +21,22 @@
  *   Barcelona Supercomputing Center - Centro Nacional de Supercomputacion   *
 \*****************************************************************************/
 
-#ifndef __TRACE_BUFFERS_H__
-#define __TRACE_BUFFERS_H__
+#ifndef __DEVICEINFO_H_INCLUDED_
+#define __DEVICEINFO_H_INCLUDED_
 
-#include "buffers.h"
-#include "signals.h"
+#include <pthread.h>
 
-/* Don't like these externs -> Declare fetch functions in wrapper.c and include prototypes in wrapper.h ? */
-extern Buffer_t **TracingBuffer;
-extern Buffer_t **SamplingBuffer;
+typedef struct Extrae_device_info
+{
+	unsigned           threadid;  // Extrae's logical thread (the row in Paraver)
+	void *             auxdata;   // Aux pointer to access other device data (may be used by OMPT)
+	unsigned long long latency;   // Latency that has to be applied to the timestamps of the records produced by this device
+	pthread_mutex_t    lock;      // Mutex to avoid collisions between threads instrumenting the device
+} Extrae_device_info_t;
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-int Extrae_Flush_Wrapper (Buffer_t *buffer);
-#if defined(__cplusplus)
-}
-#endif
+void Extrae_allocate_device_CleanUp (void);
+void Extrae_allocate_device_info (unsigned ndevices);
+unsigned Extrae_get_device_number (void);
+Extrae_device_info_t * Extrae_get_device_info (unsigned deviceid);
 
-#define TRACING_BUFFER(tid) TracingBuffer[tid]
-#define SAMPLING_BUFFER(tid) SamplingBuffer[tid]
-
-#define BUFFER_INSERT(tid, buffer, event)                   \
-{                                                           \
-	Signals_Inhibit();                                      \
-	Buffer_InsertSingle (buffer, &event);                   \
-	Signals_Desinhibit();                                   \
-	Signals_ExecuteDeferred();                              \
-}
-	
-#define BUFFER_INSERT_N(tid, buffer, events_list, num_events)            \
-{                                                                        \
-	if (num_events > 0)                                                  \
-	{                                                                    \
-		Signals_Inhibit();                                               \
-		Buffer_InsertMultiple(buffer, events_list, num_events);          \
-		Signals_Desinhibit();                                            \
-		Signals_ExecuteDeferred();                                       \
-	}                                                                    \
-}
-
-#endif /* __TRACE_BUFFERS_H__ */
+#endif /* __DEVICEINFO_H_INCLUDED_ */

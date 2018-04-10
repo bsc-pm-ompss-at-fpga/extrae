@@ -59,6 +59,7 @@ typedef unsigned extrae_comm_partner_t;
 typedef long long extrae_comm_id_t;
 typedef unsigned extrae_type_t;
 typedef unsigned long long extrae_value_t;
+typedef unsigned long long extrae_time_t;
 
 #define EXTRAE_COMM_PARTNER_MYSELF ((extrae_comm_partner_t) 0xFFFFFFFF)
 

@@ -256,6 +256,13 @@ EXPAND_F_ROUTINE_WITH_PREFIXES(apifTRACE_SET_NUM_TENTATIVE_THREADS);
 	}
   EXPAND_F_ROUTINE_WITH_PREFIXES(apifCHANGE_NUM_THREADS);
 
+#define apifREGISTER_DEVICE(x) \
+	void CtoF77(x##_register_device) (const char *desc, extrae_time_t (*func)(void *), void *func_arg) \
+	{ \
+		Extrae_register_device_Wrapper (desc, func, func_arg); \
+	}
+  EXPAND_F_ROUTINE_WITH_PREFIXES(apifREGISTER_DEVICE);
+
 #define apifTRACE_FLUSH(x) \
 	void CtoF77(x##_flush) (void) \
 	{ \
@@ -311,6 +318,18 @@ EXPAND_ROUTINE_WITH_PREFIXES(apiTRACE_EVENT)
 		} \
 	}
 EXPAND_ROUTINE_WITH_PREFIXES(apiTRACE_NEVENT)
+
+#define apiTRACE_NEVENT_DEVICE(x) \
+	void x##_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times) \
+	{ \
+		if (mpitrace_on) \
+		{ \
+			Backend_Enter_Instrumentation (); \
+			Extrae_N_DeviceEvent_Wrapper (device_id, &count, types, values, times); \
+			Backend_Leave_Instrumentation (); \
+		} \
+	}
+EXPAND_ROUTINE_WITH_PREFIXES(apiTRACE_NEVENT_DEVICE)
 
 #define apiTRACE_EVENTANDCOUNTERS(x) \
 	void x##_eventandcounters (extrae_type_t type, extrae_value_t value) \
@@ -558,7 +577,14 @@ EXPAND_ROUTINE_WITH_PREFIXES(apiTRACE_USER_FUNCTION_FROM_ADDRESS);
 		Extrae_change_number_of_threads_Wrapper (n); \
 	}
   EXPAND_ROUTINE_WITH_PREFIXES(apiCHANGE_NUM_THREADS);
-	
+
+#define apiREGISTER_DEVICE(x) \
+	void x##_register_device (const char *desc, extrae_time_t (*func)(void *), void *func_arg) \
+	{ \
+		Extrae_register_device_Wrapper (desc, func, func_arg); \
+	}
+  EXPAND_ROUTINE_WITH_PREFIXES(apiREGISTER_DEVICE);
+
 #else /* HAVE_WEAK_ALIAS_ATTRIBUTE */
 
 /** C BINDINGS **/
@@ -601,6 +627,17 @@ void Extrae_nevent (unsigned count, extrae_type_t *types, extrae_value_t *values
 	{
 		Backend_Enter_Instrumentation ();
 		Extrae_N_Event_Wrapper (&count, types, values);
+		Backend_Leave_Instrumentation ();
+	}
+}
+
+INTERFACE_ALIASES_C(_nevent_device, Extrae_nevent_device, (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times),void)
+void Extrae_nevent_device (int device_id, unsigned count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times)
+{
+	if (mpitrace_on)
+	{
+		Backend_Enter_Instrumentation ();
+		Extrae_N_DeviceEvent_Wrapper (device_id, &count, types, values, times);
 		Backend_Leave_Instrumentation ();
 	}
 }
@@ -829,6 +866,12 @@ void Extrae_change_num_threads (unsigned n)
 	Extrae_change_number_of_threads_Wrapper (n);
 }
 
+INTERFACE_ALIASES_C(_register_device,Extrae_register_device,(const char *, extrae_time_t (*)(void *), void *func_arg),void)
+void Extrae_register_device (const char *desc, extrae_time_t (*func)(void *), void *func_arg)
+{
+	Extrae_register_device_Wrapper (desc, func, func_arg);
+}
+
 INTERFACE_ALIASES_C(_flush,Extrae_flush,(void),void)
 void Extrae_flush (void)
 {
@@ -875,6 +918,17 @@ void extrae_nevent (unsigned *count, extrae_type_t *types, extrae_value_t *value
 	{
 		Backend_Enter_Instrumentation ();
 		Extrae_N_Event_Wrapper (count, types, values);
+		Backend_Leave_Instrumentation ();
+	}
+}
+
+INTERFACE_ALIASES_F(_nevent_device,_NEVENT_DEVICE,extrae_nevent_device,(int device_id, unsigned *count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times),void)
+void extrae_nevent_device (int device_id, unsigned *count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times)
+{
+	if (mpitrace_on)
+	{
+		Backend_Enter_Instrumentation ();
+		Extrae_N_DeviceEvent_Wrapper (device_id, count, types, values, times);
 		Backend_Leave_Instrumentation ();
 	}
 }

@@ -15,12 +15,12 @@ WRAPPERS_CUDA_CFLAGS = @CUDA_CFLAGS@ @CUPTI_CFLAGS@
 endif
 
 #
-# Libraries ending with c/f are for C/Fortran libraries. If not specified, 
+# Libraries ending with c/f are for C/Fortran libraries. If not specified,
 # they should contain symbols for both languages.
 #
 
-lib_LTLIBRARIES = libseqtrace.la 
-#lib_LTLIBRARIES = libseqtrace.la libextrae-core.la 
+lib_LTLIBRARIES = libseqtrace.la
+#lib_LTLIBRARIES = libseqtrace.la libextrae-core.la
 #if HAVE_MPI
 #  lib_LTLIBRARIES += libextrae-mpi.la
 #endif
@@ -142,6 +142,7 @@ WRAPPERS_CORE = \
  wrappers/API/wrapper.c wrappers/API/wrapper.h \
  wrappers/API/misc_wrapper.c wrappers/API/misc_wrapper.h \
  wrappers/API/threadinfo.c wrappers/API/threadinfo.h \
+ wrappers/API/deviceinfo.c wrappers/API/deviceinfo.h \
  wrappers/API/trace_buffers.h \
  trace_macros.h trace_macros_mpi.h trace_macros_omp.h \
  trace_hwc.h
@@ -493,7 +494,7 @@ endif
 
 # POSIX clock may be available by default. Avoid adding these if unneeded.
 if USE_POSIX_CLOCK
-if NEED_POSIX_CLOCK 
+if NEED_POSIX_CLOCK
   POSIXCLOCK_LINKER_FLAGS = -L@RT_LIBSDIR@ -R @RT_LIBSDIR@ @RT_LIBS@
 endif
 endif
@@ -592,7 +593,7 @@ lib_dyn_oclmpitracecf_la_CFLAGS = $(core_INCLUDES) $(core_CFLAGS) -DMPI_SUPPORT 
 
 #
 # Online support is only activated for the MPI libraries
-# 
+#
 if HAVE_ONLINE
 libmpitrace_la_LIBADD        += $(ONLINE_LIB)/libonline.la
 libmpitracef_la_LIBADD       += $(ONLINE_LIB)/libonline.la
@@ -649,17 +650,17 @@ endif
 libseqtrace_la_LDFLAGS = $(COMMON_LINKER_FLAGS)
 
 libmpitrace_la_LDFLAGS = $(NEW_MPI_LIBS) $(COMMON_LINKER_FLAGS)
-libmpitracef_la_LDFLAGS = $(libmpitrace_la_LDFLAGS) # -static 
+libmpitracef_la_LDFLAGS = $(libmpitrace_la_LDFLAGS) # -static
 
 if SINGLE_MPI_LIBRARY
-  libmpitracecf_la_LDFLAGS = $(libmpitrace_la_LDFLAGS) # -static 
+  libmpitracecf_la_LDFLAGS = $(libmpitrace_la_LDFLAGS) # -static
 endif
 
 libptmpitrace_la_LDFLAGS = $(NEW_MPI_LIBS) $(COMMON_LINKER_FLAGS) $(PTHREAD_LIBS)
-libptmpitracef_la_LDFLAGS = $(libptmpitrace_la_LDFLAGS) # -static 
+libptmpitracef_la_LDFLAGS = $(libptmpitrace_la_LDFLAGS) # -static
 
 if SINGLE_MPI_LIBRARY
-  libptmpitracecf_la_LDFLAGS = $(libptmpitrace_la_LDFLAGS) # -static 
+  libptmpitracecf_la_LDFLAGS = $(libptmpitrace_la_LDFLAGS) # -static
 endif
 
 libcudatrace_la_LDFLAGS = $(COMMON_LINKER_FLAGS)
@@ -709,12 +710,12 @@ libopenshmemtrace_la_LDFLAGS = $(COMMON_LINKER_FLAGS) $(OPENSHMEM_LDFLAGS)
 lib_dyn_mpitracec_la_LDFLAGS = $(libmpitrace_la_LDFLAGS)
 lib_dyn_mpitracef_la_LDFLAGS = $(libmpitrace_la_LDFLAGS)
 lib_dyn_mpitracecf_la_LDFLAGS = $(libmpitrace_la_LDFLAGS)
-lib_dyn_ompitracec_la_LDFLAGS = $(lib_dyn_mpitracec_la_LDFLAGS) 
-lib_dyn_ompitracef_la_LDFLAGS = $(lib_dyn_mpitracef_la_LDFLAGS) 
-lib_dyn_ompitracecf_la_LDFLAGS = $(lib_dyn_mpitracecf_la_LDFLAGS) 
-lib_dyn_cudampitracec_la_LDFLAGS = $(lib_dyn_mpitracec_la_LDFLAGS) 
-lib_dyn_cudampitracef_la_LDFLAGS = $(lib_dyn_mpitracef_la_LDFLAGS) 
-lib_dyn_cudampitracecf_la_LDFLAGS = $(lib_dyn_mpitracecf_la_LDFLAGS) 
+lib_dyn_ompitracec_la_LDFLAGS = $(lib_dyn_mpitracec_la_LDFLAGS)
+lib_dyn_ompitracef_la_LDFLAGS = $(lib_dyn_mpitracef_la_LDFLAGS)
+lib_dyn_ompitracecf_la_LDFLAGS = $(lib_dyn_mpitracecf_la_LDFLAGS)
+lib_dyn_cudampitracec_la_LDFLAGS = $(lib_dyn_mpitracec_la_LDFLAGS)
+lib_dyn_cudampitracef_la_LDFLAGS = $(lib_dyn_mpitracef_la_LDFLAGS)
+lib_dyn_cudampitracecf_la_LDFLAGS = $(lib_dyn_mpitracecf_la_LDFLAGS)
 
 ## -static tells libtool to generate ONLY the static library (we don't want
 ##   the libmpitracef.so because it don't preloads fine with programs)
@@ -748,7 +749,6 @@ lib_dyn_cudampitracecf_la_LDFLAGS = $(lib_dyn_mpitracecf_la_LDFLAGS)
 #endif
 #libextrae_mpi_la_LDFLAGS = $(NEW_MPI_LIBS) $(COMMON_LINKER_FLAGS)
 #
-#libextrae_openmp_la_SOURCES = $(WRAPPERS_OMP) 
+#libextrae_openmp_la_SOURCES = $(WRAPPERS_OMP)
 #libextrae_openmp_la_CFLAGS  = $(core_INCLUDES) $(core_CFLAGS) $(EXTRA_OMP_CFLAGS) -DOMP_SUPPORT -DSTANDALONE
 #libextrae_openmp_la_LDFLAGS = $(COMMON_LINKER_FLAGS)
-

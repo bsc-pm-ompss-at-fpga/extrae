@@ -68,6 +68,7 @@
 #include "misc_wrapper.h"
 #include "common_hwc.h"
 #include "threadinfo.h"
+#include "deviceinfo.h"
 #include "sampling-common.h"
 
 #ifdef HAVE_MALLOC_H
@@ -99,6 +100,29 @@ void Extrae_N_Event_Wrapper (unsigned *count, extrae_type_t *types, extrae_value
 		for (i = 0; i < *count; i++)
 			events_id[i] = USER_EV;
 		TRACE_N_MISCEVENT(LAST_READ_TIME, *count, events_id, types, values);
+	}
+}
+
+void Extrae_N_DeviceEvent_Wrapper (int device_id, unsigned *count, extrae_type_t *types, extrae_value_t *values, extrae_time_t *times)
+{
+	unsigned i;
+
+	if (*count > 0)
+	{
+		/* Retrieve the Extrae's logical thread id, the lookup and the context for the given device */
+		Extrae_device_info_t  *device_info = Extrae_get_device_info (device_id);
+		if (device_info == NULL) return;
+		unsigned extrae_thread_id = device_info->threadid;
+
+		pthread_mutex_lock (&device_info->lock);
+		for (i = 0; i < *count; i++)
+		{
+			/* In contrast to OMPT target instrumentation, the provided timestamps come translated
+			   not RAW device cycles. But, they must be synchronized to match the host time */
+			extrae_time_t time = times[i] + device_info->latency;
+			THREAD_TRACE_MISCEVENT(extrae_thread_id, time, USER_EV, types[i], values[i]);
+		}
+		pthread_mutex_unlock (&device_info->lock);
 	}
 }
 
@@ -149,11 +173,11 @@ void Extrae_set_options_Wrapper (int options)
 {
 	Trace_Caller_Enabled[CALLER_MPI] = options & EXTRAE_CALLER_OPTION;
 	Trace_HWC_Enabled = options & EXTRAE_HWC_OPTION;
-	tracejant_mpi     = options & EXTRAE_MPI_OPTION;   
-	tracejant_omp     = options & EXTRAE_OMP_OPTION;   
+	tracejant_mpi     = options & EXTRAE_MPI_OPTION;
+	tracejant_omp     = options & EXTRAE_OMP_OPTION;
 	Extrae_set_pthread_tracing (options & EXTRAE_PTHREAD_OPTION);
 	tracejant_hwc_mpi = options & EXTRAE_MPI_HWC_OPTION;
-	tracejant_hwc_omp = options & EXTRAE_OMP_HWC_OPTION;   
+	tracejant_hwc_omp = options & EXTRAE_OMP_HWC_OPTION;
 	Extrae_set_pthread_hwc_tracing (options & EXTRAE_PTHREAD_HWC_OPTION);
 	tracejant_hwc_uf  = options & EXTRAE_UF_HWC_OPTION;
 	Extrae_setSamplingEnabled (options & EXTRAE_SAMPLING_OPTION);
@@ -183,7 +207,7 @@ void Extrae_getrusage_Wrapper (void)
 	{
 		struct rusage current_usage;
 		struct rusage delta_usage;
-	
+
 		if (getrusage_running)
 			return;
 
@@ -191,7 +215,7 @@ void Extrae_getrusage_Wrapper (void)
 
 		err = getrusage(RUSAGE_SELF, &current_usage);
 
-		if (!init_pending) 
+		if (!init_pending)
 		{
 			delta_usage.ru_utime.tv_sec = current_usage.ru_utime.tv_sec - last_usage.ru_utime.tv_sec;
 			delta_usage.ru_utime.tv_usec = current_usage.ru_utime.tv_usec - last_usage.ru_utime.tv_usec;
@@ -205,7 +229,7 @@ void Extrae_getrusage_Wrapper (void)
 		else
 			delta_usage = current_usage;
 
-		if (!err) 
+		if (!err)
 		{
 			TRACE_MISCEVENT(LAST_READ_TIME, RUSAGE_EV, RUSAGE_UTIME_EV,  delta_usage.ru_utime.tv_sec * 1000000 + delta_usage.ru_utime.tv_usec);
 			TRACE_MISCEVENT(LAST_READ_TIME, RUSAGE_EV, RUSAGE_STIME_EV,  delta_usage.ru_stime.tv_sec * 1000000 + delta_usage.ru_stime.tv_usec);
@@ -475,7 +499,7 @@ void Extrae_emit_CombinedEvents_Wrapper (struct extrae_CombinedEvents *ptr)
 		TRACE_USER_COMMUNICATION_EVENT(LAST_READ_TIME,
 		  (ptr->Communications[i].type==EXTRAE_USER_SEND)?USER_SEND_EV:USER_RECV_EV,
 		  ptr->Communications[i].partner, ptr->Communications[i].size,
-		  ptr->Communications[i].tag, ptr->Communications[i].id) 
+		  ptr->Communications[i].tag, ptr->Communications[i].id)
 }
 
 /* ***************************************************************************
@@ -528,7 +552,7 @@ void Extrae_get_version_Wrapper (unsigned *major, unsigned *minor,
 }
 
 /**************************************************************************
-  Registers a type to be treated as a callstack info 
+  Registers a type to be treated as a callstack info
  *************************************************************************/
 
 void Extrae_register_codelocation_type_Wrapper (extrae_type_t type_function,
@@ -544,7 +568,7 @@ void Extrae_register_codelocation_type_Wrapper (extrae_type_t type_function,
 		(char)0, 0, NULL, NULL);
 }
 
-void Extrae_register_function_address_Wrapper (void *ptr, const char *funcname, 
+void Extrae_register_function_address_Wrapper (void *ptr, const char *funcname,
 	const char *modname, unsigned line)
 {
 	Extrae_AddFunctionDefinitionEntryToLocalSYM ('O', ptr, (char*)funcname, (char*)modname, line);
@@ -558,7 +582,37 @@ void Extrae_define_event_type_Wrapper (extrae_type_t type, char *description,
 }
 
 /**************************************************************************
- Lets change the number of active threads 
+ Lets change the number of devices
+ *************************************************************************/
+void Extrae_register_device_Wrapper (const char *description, extrae_time_t (*get_device_time_fn)(void *), void *get_device_time_arg)
+{
+	unsigned int device_id, new_extrae_thread_id;
+	Extrae_device_info_t * device_info = NULL;
+	extrae_time_t latency, current_host_time, current_device_time;
+
+	/* Increase by 1 the number of devices in Extrae */
+	device_id = Extrae_get_device_number();
+	Extrae_allocate_device_info (1);
+
+	/* Increase by 1 the number of threads in Extrae */
+	new_extrae_thread_id = Backend_getNumberOfThreads();
+	Backend_ChangeNumberOfThreads (new_extrae_thread_id + 1);
+	Extrae_set_thread_name (new_extrae_thread_id, description);
+
+	/* Read the current device time, then the host time, and store the delta to compute later the time synchronization */
+	current_host_time   = Clock_getCurrentTime_nstore ();
+	current_device_time = get_device_time_fn (get_device_time_arg);
+	latency             = current_host_time - current_device_time;
+
+	/* Save a mapping to translate from the device id to the logical thread id in Extrae,
+	   and also store all the information about the device that we'll be needing later */
+	device_info = Extrae_get_device_info (device_id);
+	device_info->threadid = new_extrae_thread_id;
+	device_info->latency = latency;
+}
+
+/**************************************************************************
+ Lets change the number of active threads
  *************************************************************************/
 void Extrae_change_number_of_threads_Wrapper (unsigned nthreads)
 {
@@ -566,10 +620,9 @@ void Extrae_change_number_of_threads_Wrapper (unsigned nthreads)
 }
 
 /******************************************************************************
- Called through the API by the user, initiates the flush of the current thread 
+ Called through the API by the user, initiates the flush of the current thread
  *****************************************************************************/
 void Extrae_flush_manual_Wrapper (void)
 {
   Flush_Thread( THREADID );
 }
-
