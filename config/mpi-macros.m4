@@ -334,13 +334,36 @@ AC_DEFUN([AX_CHECK_MPI3_VERSION],
       [mpi3_version="yes"],
       [mpi3_version="no"]
    )
-   if test "${mpi3_version}" = "yes"; then
-       AC_DEFINE([MPI3], [1], [Define if we are using a MPI3 implementation])
-   fi
    AX_FLAGS_RESTORE()
    AC_LANG_RESTORE()
    AC_MSG_RESULT([${mpi3_version}])
    AX_FLAGS_RESTORE()
+
+   if test "${mpi3_version}" = "yes"; then
+       AC_DEFINE([MPI3], [1], [Define if we are using a MPI3 implementation])
+
+       # Test MPI3 support is a draft: some routines lack the const modifier
+       AC_MSG_CHECKING([if given MPI3 implementation is a draft])
+       AX_FLAGS_SAVE()
+       CFLAGS="${CFLAGS} -I${MPI_INCLUDES}"
+       AC_LANG_SAVE()
+       AC_LANG([C])
+       AC_TRY_COMPILE(
+           [#include <mpi.h>],
+           [
+              int MPI_Compare_and_swap(void *origin_addr, void *compare_addr, void *result_addr, MPI_Datatype datatype, int target_rank, MPI_Aint target_disp, MPI_Win win);
+           ],
+           [mpi3_draft="yes"],
+           [mpi3_draft="no"]
+       )
+			 if test "${mpi3_draft}" = "yes"; then
+           AC_DEFINE([MPI3_DRAFT], [1], [Define if MPI3 implementation is a draft])
+       fi
+       AX_FLAGS_RESTORE()
+       AC_LANG_RESTORE()
+       AC_MSG_RESULT([${mpi3_draft}])
+       AX_FLAGS_RESTORE()
+   fi
 ])
 
 
@@ -645,13 +668,30 @@ AC_DEFUN([AX_CHECK_MPI_SUPPORTS_MPI_1SIDED],
 			ierror = MPI_Put ((void*)0, 0, (MPI_Datatype)0, 0, (MPI_Aint)0, 0, (MPI_Datatype)0, (MPI_Win)0);
 			ierror = MPI_Get ((void*)0, 0, (MPI_Datatype)0, 0, (MPI_Aint)0, 0, (MPI_Datatype)0, (MPI_Win)0);
 		],
-		[mpi_lib_supports_mpi_1sided="yes" ],
-		[mpi_lib_supports_mpi_1sided="no" ]
+		[mpi_lib_supports_mpi_1sided="yes"],
+		[mpi_lib_supports_mpi_1sided="no"]
 	)
 	AC_MSG_RESULT([${mpi_lib_supports_mpi_1sided}])
 
 	if test "${mpi_lib_supports_mpi_1sided}" = "yes" ; then
 		AC_DEFINE([MPI_SUPPORTS_MPI_1SIDED], 1, [Defined if MPI library supports 1-sided operations])
+
+		# Test for MPI_Get_accumulate, we've seen that BullMPI supports 1-sided but does not implement this routine
+		AC_MSG_CHECKING([if MPI library supports MPI_Get_accumulate])
+		AC_TRY_LINK(
+			[#include <mpi.h>],
+			[
+				int ierror;
+				ierror = MPI_Get_accumulate ((void *)0, 0, (MPI_Datatype)0, (void *)0, 0, (MPI_Datatype)0, 0, (MPI_Aint)0, 0, (MPI_Datatype)0, (MPI_Op)0, (MPI_Win)0);
+			],
+			[mpi_lib_supports_mpi_get_accumulate="yes"],
+			[mpi_lib_supports_mpi_get_accumulate="no"]
+		)
+		AC_MSG_RESULT([${mpi_lib_supports_mpi_get_accumulate}])
+
+		if test "${mpi_lib_supports_mpi_get_accumulate}" = "yes" ; then
+			AC_DEFINE([MPI_SUPPORTS_MPI_GET_ACCUMULATE], 1, [Defined if MPI library supports MPI_Get_accumulate])
+		fi
 	fi
 
 	AX_FLAGS_RESTORE()

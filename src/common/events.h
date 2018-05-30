@@ -115,6 +115,7 @@ enum {
 #define PWRITEV_VAL_EV                 10 /* Used in merger, with IO_EV */
 #define OPEN_VAL_EV                    11 /* Used in merger, with IO_EV */
 #define FOPEN_VAL_EV                   12 /* Used in merger, with IO_EV */
+#define IOCTL_VAL_EV                   13 /* Used in merger, with IO_EV */
 #define USER_EV                  40000006
 #define HWC_DEF_EV               40000007
 #define HWC_CHANGE_EV            40000008
@@ -199,6 +200,8 @@ enum
 #define FILE_NAME_EV             40000059
 #define OPEN_EV                  40000060
 #define FOPEN_EV                 40000061
+#define IOCTL_EV                 40000067
+#define IOCTL_REQUEST_EV         40000068
 
 #define ADDRESSES_FOR_BINARY_EV  41000000
 
@@ -405,6 +408,25 @@ enum {
 #define MPI_WIN_UNLOCK_EV	     50000229
 #define MPI_GET_ACCUMULATE_EV	     50000230
 
+#define MPI_GRAPH_CREATE_EV          50000231
+#define MPI_DIST_GRAPH_CREATE_EV     50000232
+#define MPI_NEIGHBOR_ALLGATHER_EV    50000233
+#define MPI_INEIGHBOR_ALLGATHER_EV   50000234
+#define MPI_NEIGHBOR_ALLGATHERV_EV   50000235
+#define MPI_INEIGHBOR_ALLGATHERV_EV  50000236
+#define MPI_NEIGHBOR_ALLTOALL_EV     50000237
+#define MPI_INEIGHBOR_ALLTOALL_EV    50000238
+#define MPI_NEIGHBOR_ALLTOALLV_EV    50000239
+#define MPI_INEIGHBOR_ALLTOALLV_EV   50000240
+#define MPI_NEIGHBOR_ALLTOALLW_EV    50000241
+#define MPI_INEIGHBOR_ALLTOALLW_EV   50000242
+
+#define MPI_FETCH_AND_OP_EV          50000243
+#define MPI_COMPARE_AND_SWAP_EV      50000244
+#define MPI_WIN_FLUSH_EV             50000245
+#define MPI_WIN_FLUSH_ALL_EV         50000246
+#define MPI_WIN_FLUSH_LOCAL_EV       50000247
+#define MPI_WIN_FLUSH_LOCAL_ALL_EV   50000248
 
 #define MPI_IPROBE_COUNTER_EV        50000300
 #define MPI_TIME_OUTSIDE_IPROBES_EV  50000301
@@ -523,6 +545,7 @@ enum {
 #define CUDAMEMCPYASYNC_EV       63100007
 #define CUDADEVICERESET_EV       63100008
 #define CUDATHREADEXIT_EV        63100009
+#define CUDASTREAMDESTROY_EV     63100010
 #define CUDABASE_GPU_EV          63200000
 #define CUDAKERNEL_GPU_EV        63200001
 #define CUDACONFIGKERNEL_GPU_EV  63200002

@@ -209,6 +209,9 @@ static int ReadWrite_Event (event_t * event, unsigned long long time,
 					case PWRITEV_EV:
 						io_type = PWRITEV_VAL_EV;
 						break;
+					case IOCTL_EV:
+						io_type = IOCTL_VAL_EV;
+						break;
 					default:
 						io_type = 0;
 						break;
@@ -230,10 +233,14 @@ static int ReadWrite_Event (event_t * event, unsigned long long time,
                                  * stage of the merger, so we don't know how to translate the local id into 
                                  * an unified one because the translation information has not been shared yet. 
                                  * At the end of phase 1 the information is shared, and during phase 2 we will
-                                 * change the local ids into the unifieds (see paraver_build_multi_event in paraver_generator.c)
+                                 * change the local ids into the unified (see paraver_build_multi_event in paraver_generator.c)
                                  */
                                 trace_paraver_event (cpu, ptask, task, thread, time, FILE_NAME_EV, EvParam);
                                 break;
+			case EVT_BEGIN+4:
+				/* This event refers to the request of an ioctl call */
+				trace_paraver_event (cpu, ptask, task, thread, time, IOCTL_REQUEST_EV, EvParam);
+				break;
 			default:
 				break;
 		}
@@ -330,6 +337,8 @@ static int CPUEventInterval_Event (event_t * current_event,
 
 	trace_paraver_event (cpu, ptask, task, thread, current_time, EvType,
 	  EvValue);
+
+	return 0;
 }
 
 
@@ -1740,6 +1749,8 @@ static int DynamicMemory_Partition_Event (event_t * event,
         unsigned long long EvValue = Get_EvValue (event);
 
 	trace_paraver_event (cpu, ptask, task, thread, time, MEMKIND_PARTITION_EV, EvValue);
+
+	return 0;
 }
 
 static int SystemCall_Event (event_t * event,                      
@@ -1763,6 +1774,8 @@ static int SystemCall_Event (event_t * event,
 
 	trace_paraver_event (cpu, ptask, task, thread, time, 
 	 SYSCALL_EV, (EvValue == EVT_BEGIN ? SysCallID+1 : 0));
+
+	return 0;
 }                                                                               
 
 
@@ -1782,6 +1795,7 @@ SingleEv_Handler_t PRV_MISC_Event_Handlers[] = {
 	{ PREADV_EV, ReadWrite_Event },
 	{ WRITEV_EV, ReadWrite_Event },
 	{ PWRITEV_EV, ReadWrite_Event },
+	{ IOCTL_EV, ReadWrite_Event },
 	{ APPL_EV, Appl_Event },
 	{ TRACE_INIT_EV, InitTracing_Event },
 	{ USER_EV, User_Event },

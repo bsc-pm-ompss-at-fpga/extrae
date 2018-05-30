@@ -147,11 +147,6 @@ static void Extrae_MPI_Finalize (void)
 	PMPI_Finalize ();
 }
 
-static void Trace_MPI_Communicator (MPI_Comm newcomm, UINT64 time, int trace);
-static void Trace_MPI_InterCommunicator (MPI_Comm newcomm, MPI_Comm local_comm,
-	int local_leader, MPI_Comm remote_comm, int remote_leader, UINT64 time,
-	int trace);
-
 /******************************************************************************
  ********************      L O C A L    V A R I A B L E S        **************
  ******************************************************************************/
@@ -1025,7 +1020,7 @@ void PMPI_Init_Wrapper (MPI_Fint *ierror)
 		Extrae_set_initial_TASKID (TASKID);
 		Extrae_set_is_initialized (EXTRAE_INITIALIZED_MPI_INIT);
 
-		if (config_file != NULL)
+		if (config_file != NULL && config_file[0] != '\0')
 			/* Obtain a localized copy *except for the master process* */
 			config_file = MPI_Distribute_XML_File (TASKID, Extrae_get_num_tasks(), config_file);
 
@@ -1143,7 +1138,7 @@ void PMPI_Init_thread_Wrapper (MPI_Fint *required, MPI_Fint *provided, MPI_Fint 
 		Extrae_set_initial_TASKID (TASKID);
 		Extrae_set_is_initialized (EXTRAE_INITIALIZED_MPI_INIT);
 
-		if (config_file != NULL)
+		if (config_file != NULL && config_file[0] != '\0')
 			/* Obtain a localized copy *except for the master process* */
 			config_file = MPI_Distribute_XML_File (TASKID, Extrae_get_num_tasks(), config_file);
 
@@ -2013,7 +2008,7 @@ int MPI_Init_C_Wrapper (int *argc, char ***argv)
 		Extrae_set_initial_TASKID (TASKID);
 		Extrae_set_is_initialized (EXTRAE_INITIALIZED_MPI_INIT);
 
-		if (config_file != NULL)
+		if (config_file != NULL && config_file[0] != '\0')
 			/* Obtain a localized copy *except for the master process* */
 			config_file = MPI_Distribute_XML_File (TASKID, Extrae_get_num_tasks(), config_file);
 
@@ -2129,7 +2124,7 @@ int MPI_Init_thread_C_Wrapper (int *argc, char ***argv, int required, int *provi
 		Extrae_set_initial_TASKID (TASKID);
 		Extrae_set_is_initialized (EXTRAE_INITIALIZED_MPI_INIT);
 
-		if (config_file != NULL)
+		if (config_file != NULL && config_file[0] != '\0')
 			/* Obtain a localized copy *except for the master process* */
 			config_file = MPI_Distribute_XML_File (TASKID, Extrae_get_num_tasks(), config_file);
 
@@ -2877,7 +2872,7 @@ void Extrae_tracing_tasks_Wrapper (unsigned from, unsigned to)
 /******************************************************************************
  ***  Trace_MPI_Communicator
  ******************************************************************************/
-static void Trace_MPI_Communicator (MPI_Comm newcomm, UINT64 time, int trace)
+void Trace_MPI_Communicator (MPI_Comm newcomm, UINT64 time, int trace)
 {
 	/* Store in the tracefile the definition of the communicator.
 	   If the communicator is self/world, store an alias, otherwise store the
@@ -2945,7 +2940,7 @@ static void Trace_MPI_Communicator (MPI_Comm newcomm, UINT64 time, int trace)
 /******************************************************************************
  ***  Trace_MPI_InterCommunicator
  ******************************************************************************/
-static void Trace_MPI_InterCommunicator (MPI_Comm newcomm, MPI_Comm local_comm, 
+void Trace_MPI_InterCommunicator (MPI_Comm newcomm, MPI_Comm local_comm, 
 	int local_leader, MPI_Comm remote_comm, int remote_leader, UINT64 time,
 	int trace)
 {
@@ -3007,7 +3002,7 @@ void Extrae_MPI_prepareDirectoryStructures (int me, int world_size)
 			if (me == 0)
 				fprintf (stdout, PACKAGE_NAME": Temporal directory (%s) is private among processes.\n",
 				  Extrae_Get_TemporalDirNoTask());
-				Backend_createExtraeDirectory (me, TRUE);
+			Backend_createExtraeDirectory (me, TRUE);
 		}
 	
 		/* Now, wait for every process to reach this point, so directories are

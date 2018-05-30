@@ -7,7 +7,7 @@
 
 m4_define([extrae_major], [3])
 m4_define([extrae_minor], [5])
-m4_define([extrae_micro], [3])
+m4_define([extrae_micro], [4])
 
 m4_define([extrae_version], [extrae_major.extrae_minor.extrae_micro])
 
@@ -679,6 +679,7 @@ AC_CONFIG_LINKS([tests/functional/helper_functions.bash:tests/functional/helper_
 		[tests/functional/tracer/CUDA/trace.sh:tests/functional/tracer/CUDA/trace.sh] \
 		[tests/functional/tracer/CUDA/extrae.xml:tests/functional/tracer/CUDA/extrae.xml] \
 		[tests/functional/tracer/CUDA/hello.cu:tests/functional/tracer/CUDA/hello.cu] \
+		[tests/functional/tracer/CUDA/stream.cu:tests/functional/tracer/CUDA/stream.cu] \
 		[tests/functional/tracer/MPI/trace-static.sh:tests/functional/tracer/MPI/trace-static.sh] \
 		[tests/functional/tracer/MPI/trace-ldpreload.sh:tests/functional/tracer/MPI/trace-ldpreload.sh] \
 		[tests/functional/tracer/MPI/trace-ldpreloadf.sh:tests/functional/tracer/MPI/trace-ldpreloadf.sh] \

@@ -88,11 +88,17 @@ These are the instrumented MPI routines in the |TRACE| package:
 * MPI_File_read_at_all [#MPIIOSUPPORT]_
 * MPI_File_write_at [#MPIIOSUPPORT]_
 * MPI_File_write_at_all [#MPIIOSUPPORT]_
+* MPI_Compare_and_swap [#MPIRMASUPPORT]_
+* MPI_Fetch_and_op [#MPIRMASUPPORT]_
 * MPI_Get [#MPIRMASUPPORT]_
 * MPI_Put [#MPIRMASUPPORT]_
 * MPI_Win_complete [#MPIRMASUPPORT]_
 * MPI_Win_create [#MPIRMASUPPORT]_
 * MPI_Win_fence [#MPIRMASUPPORT]_
+* MPI_Win_flush [#MPIRMASUPPORT]_
+* MPI_Win_flush_all [#MPIRMASUPPORT]_
+* MPI_Win_flush_local [#MPIRMASUPPORT]_
+* MPI_Win_flush_local_all [#MPIRMASUPPORT]_
 * MPI_Win_free [#MPIRMASUPPORT]_
 * MPI_Win_post [#MPIRMASUPPORT]_
 * MPI_Win_start [#MPIRMASUPPORT]_
@@ -107,6 +113,18 @@ These are the instrumented MPI routines in the |TRACE| package:
 * MPI_Intercomm_create
 * MPI_Intercomm_merge
 
+* MPI_Graph_create
+* MPI_Dist_graph_create
+* MPI_Neighbor_allgather
+* MPI_Ineighbor_allgather
+* MPI_Neighbor_allgatherv
+* MPI_Ineighbor_allgatherv
+* MPI_Neighbor_alltoall
+* MPI_Ineighbor_alltoall
+* MPI_Neighbor_alltoallv
+* MPI_Ineighbor_alltoallv
+* MPI_Neighbor_alltoallw
+* MPI_Ineighbor_alltoall
 
 
 .. _sec:OpenMPruntimesinstrumented:
@@ -269,13 +287,16 @@ These are the instrumented CUDA routines in the |TRACE| package:
 * cudaLaunch
 * cudaConfigureCall
 * cudaThreadSynchronize
+* cudaThreadExit
 * cudaStreamCreate
+* cudaStreamCreateWithFlags
+* cudaStreamCreateWithPriority
 * cudaStreamSynchronize
+* cudaStreamDestroy
 * cudaMemcpy
 * cudaMemcpyAsync
 * cudaDeviceReset
 * cudaDeviceSynchronize
-* cudaThreadExit
 
 The CUDA accelerators do not have memory for the tracing buffers, so the tracing
 buffer resides in the host side.
